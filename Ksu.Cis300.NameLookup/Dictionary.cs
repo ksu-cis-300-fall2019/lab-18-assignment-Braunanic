@@ -102,6 +102,73 @@ namespace Ksu.Cis300.NameLookup
                 }
             }
         }
+        /// <summary>
+        /// will remove minimum key of a tree
+        /// </summary>
+        /// <param name="t">tree</param>
+        /// <param name="min">minimum key</param>
+        /// <returns>new tree</returns>
+        private static BinaryTreeNode<KeyValuePair<TKey, TValue>> RemoveMininumKey(BinaryTreeNode<KeyValuePair<TKey, TValue>> t, out KeyValuePair<TKey, TValue> min)
+        {
+            if (t.LeftChild != null)
+            {
+                return new BinaryTreeNode<KeyValuePair<TKey,TValue>>(t.Data, RemoveMininumKey(t.LeftChild,out min),t.RightChild);
+            }
+            else
+            {
+                min = t.Data;
+                return t.RightChild;
+            }
+        }
+        /// <summary>
+        /// removes a treenode a returns updated tree
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="t"></param>
+        /// <param name="removed"></param>
+        /// <returns></returns>
+        private static BinaryTreeNode<KeyValuePair<TKey, TValue>> Remove(TKey key, BinaryTreeNode<KeyValuePair<TKey, TValue>> t, out bool removed)
+        {
+            if (t == null)
+            {
+                removed = false;
+                return null;
+            }
+            else if (t.Data.Key.CompareTo(key) < 0)
+            {
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> temp = Remove(key, t.RightChild, out removed);
+                return new BinaryTreeNode<KeyValuePair<TKey, TValue>>(t.Data, t.LeftChild, temp);
+            }
+            else if (t.Data.Key.CompareTo(key) > 0)
+            {
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> temp = Remove(key, t.LeftChild, out removed);
+                return new BinaryTreeNode<KeyValuePair<TKey, TValue>>(t.Data, temp, t.RightChild);
+            }
+            else
+            {
+                removed = true;
+                if (t.LeftChild == null && t.RightChild == null)
+                {
+                    return null;
+                }
+                else if ((t.LeftChild != null && t.RightChild == null) || (t.LeftChild == null && t.RightChild != null))
+                {
+                    if (t.LeftChild != null)
+                    {
+                        return t.LeftChild;
+                    }
+                    else
+                    {
+                        return t.RightChild;
+                    }
+                }
+                else
+                {
+                    BinaryTreeNode<KeyValuePair<TKey, TValue>> updatedRight = RemoveMininumKey(t.RightChild, out KeyValuePair<TKey, TValue> min);
+                    return new BinaryTreeNode<KeyValuePair<TKey, TValue>>(min, t.LeftChild, updatedRight);
+                }
+            }
+        }
 
         /// <summary>
         /// Tries to get the value associated with the given key.
@@ -137,6 +204,21 @@ namespace Ksu.Cis300.NameLookup
         {
             CheckKey(k);
             _elements = Add(_elements, k, v);
+        }
+        /// <summary>
+        /// removes a key
+        /// </summary>
+        /// <param name="k"></param>
+        /// <returns></returns>
+        public bool Remove(TKey k)
+        {
+            if (k == null)
+            {
+                throw new ArgumentNullException();
+            }
+            bool removed;
+            _elements = Remove(k, _elements, out removed);
+            return removed;
         }
     }
 }
